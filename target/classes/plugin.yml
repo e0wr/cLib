@@ -1,4 +1,0 @@
-name: cLib
-version: '1.0'
-main: ua.kusarigama.clib.CLib
-api-version: '1.16'
