@@ -39,7 +39,43 @@ public class TextUtil {
     }
 
 
-    public void sendMessage(Player player, String path, Object... args) {
+    public void sendMessage(Player player, String message) {
+        message = translateColors(message);
+
+        String actionPattern = "\\{text: <(.*?)>, (.*?)\\}";
+        Pattern pattern = Pattern.compile(actionPattern, Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(message);
+
+        TextComponent finalMessage = new TextComponent();
+        int lastEnd = 0;
+
+        while (matcher.find()) {
+            String plainText = message.substring(lastEnd, matcher.start());
+            if (!plainText.isEmpty()) {
+                finalMessage.addExtra(new TextComponent(TextComponent.fromLegacyText(plainText)));
+            }
+
+            String text = matcher.group(1);
+            String actions = matcher.group(2);
+
+            TextComponent textComponent = new TextComponent(TextComponent.fromLegacyText(text));
+            applyActions(textComponent, actions);
+
+            finalMessage.addExtra(textComponent);
+            lastEnd = matcher.end();
+        }
+
+        if (lastEnd < message.length()) {
+            String remainingText = message.substring(lastEnd);
+            if (!remainingText.isEmpty()) {
+                finalMessage.addExtra(new TextComponent(TextComponent.fromLegacyText(remainingText)));
+            }
+        }
+
+        player.spigot().sendMessage(finalMessage);
+    }
+
+    public void sendMessagePath(Player player, String path, Object... args) {
         String message = CLib.getInstance().getConfig().getString(path, "");
 
         if (args.length > 0) {
